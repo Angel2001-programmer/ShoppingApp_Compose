@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import com.angel.shoppingapp.model.Product
 import com.angel.shoppingapp.widgets.RowCard
 
+    val list = listOf<Product>()
+
     @Preview
     @Composable
     fun homePage(){
@@ -24,7 +26,7 @@ import com.angel.shoppingapp.widgets.RowCard
     }
 
     @Composable
-    fun list(product: Product){
+    fun list(){
             LazyColumn(modifier = Modifier.padding(vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 items(items = list, itemContent = { item ->
                     Log.d("ListItems", "list: $item")

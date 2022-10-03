@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    fun Content(products: products) {
+    fun Content() {
         setContent {
             ShoppingAppTheme {
                 homePage()
