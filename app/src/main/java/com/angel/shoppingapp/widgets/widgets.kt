@@ -1,6 +1,7 @@
 package com.angel.shoppingapp.widgets
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,11 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.angel.shoppingapp.R
 
 @Composable
 fun ItemCard(item: String) {
@@ -63,6 +66,32 @@ fun ItemCard(item: String) {
                 }
             }
         }
+}
+
+@Composable
+fun BasketCard() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(8.dp)) {
+            Image(painter = painterResource(id = R.drawable.placeholderimg),
+                contentDescription = "product image")
+            Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
+                Text(text = "Title")
+                Text(text = "Price")
+            }
+        }
+        Column(horizontalAlignment = Alignment.End,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp)) {
+            Text(text = "Total: £300")
+        }
+
+        Box(contentAlignment = Alignment.BottomCenter, modifier = Modifier.fillMaxWidth()) {
+            component.Button(onClick = { /*TODO*/ },
+                elevation = ButtonDefaults.elevation(2.dp),
+                value = "Purchase £300")
+        }
+    }
 }
 
 @Composable
