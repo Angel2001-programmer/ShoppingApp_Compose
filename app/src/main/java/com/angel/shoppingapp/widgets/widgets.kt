@@ -1,45 +1,107 @@
 package com.angel.shoppingapp.widgets
 
-import android.inputmethodservice.Keyboard
-import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
-import com.angel.shoppingapp.model.Product
-import com.angel.shoppingapp.model.products
+import coil.compose.AsyncImage
 
 @Composable
-fun RowCard(item: List<Product>) {
-            Row(modifier = Modifier
-            .clip(shape = RoundedCornerShape(15))
-            .background(color = Color.LightGray)
-            .width(370.dp)
-            .size(150.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+fun ItemCard(item: String) {
+        Card(modifier = Modifier.clip(shape = RoundedCornerShape(3, 3, 3, 3))) {
+            Column() {
+                AsyncImage(
+                    modifier = Modifier.height(160.dp),
+                    model = "https://www.foodbev.com/wp-content/gallery/food-releases-march-2019/Hazelnut-Spread-M-and-Ms.jpg",
+                    contentDescription = ""
+                )
 
-            rememberAsyncImagePainter(model = "https://play-lh.googleusercontent.com/yPtnkXQAn6yEahOurxuYZL576FDXWn3CqewVcEWJsXlega_nSiavBvmaXwfTGktGlQ")
+                Card(shape = RoundedCornerShape(0, 0, 10, 10), elevation = 12.dp) {
+                    Row(modifier = Modifier
+                        .height(70.dp)
+                        .width(255.dp)
+                        .background(Color(0xFFBFBDBD)),
+                    )
 
-//            Image(imageVector = Icons.Default.AccountBox,
-//                contentDescription = "Icon Image",
-//                modifier = Modifier.size(150.dp))
+                    {
+                        Text(
+                            text = "Price £$item",
+                            modifier = Modifier
+                                .padding(start = 5.dp)
+                                .background(Color(0xFFBFBDBD))
+                                .weight(1F),
+                            style = MaterialTheme.typography.h5,
+                        )
 
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-            Text(text = item.toString(), style = TextStyle(fontSize = 25.sp))
+                        Card(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1F),
+                            border = BorderStroke(1.5.dp, Color.Black),
+                            shape = RoundedCornerShape(10),
+                            backgroundColor = Color(0xFFD9D9D9), elevation = 12.dp) {
+
+                            Text(
+                                text = "Average rating\n5 stars",
+                                style = MaterialTheme.typography.subtitle1,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
         }
-    }
-
-    Log.d("Test", "RowCard: ${item}")
-    Log.d("Test", "RowCard: ${item}")
 }
 
-//item: Product
+@Composable
+    fun TopBar(title: String) {
+    TopAppBar(
+        title = {
+            Text(text = title,
+                color = Color.White)
+        },
+
+        backgroundColor = Color(0xFFB11E1E),
+        navigationIcon = {
+            IconButton(onClick = {}) {
+                Icon(Icons.Default.Menu,
+                    contentDescription = "menu button",
+                    tint = Color.White)
+            }
+        })
+}
+
+@Composable
+    fun sidebar(item: String) {
+    Surface(modifier = Modifier.background(Color.White)) {
+        Surface(modifier = Modifier
+            .fillMaxHeight()
+            .width(200.dp)
+            .padding(start = 8.dp, end = 8.dp, top = 8.dp)) {
+            Row(modifier = Modifier
+                .clip(shape = RoundedCornerShape(15))
+                .background(color = Color.LightGray)
+                .width(370.dp)
+                .size(150.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Box(contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Text(text = item, style = TextStyle(fontSize = 25.sp))
+                }
+            }
+        }
+    }
+}
