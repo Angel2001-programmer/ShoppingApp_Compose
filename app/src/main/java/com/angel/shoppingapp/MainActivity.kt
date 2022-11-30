@@ -5,16 +5,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.angel.shoppingapp.screens.home.HomeScreen
-import com.angel.shoppingapp.screens.home.LoginScreen
-
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.angel.shoppingapp.navigation.Navigation
 
 class MainActivity : ComponentActivity() {
+
+    lateinit var navController: NavHostController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ShoppingAppTheme {
-                LoginScreen()
+                navController = rememberNavController()
+                Navigation(navController = navController)
             }
         }
     }
@@ -28,7 +33,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun DefaultPreview() {
         ShoppingAppTheme {
-            HomeScreen()
+            Navigation(navController = navController)
         }
     }
 }

@@ -11,5 +11,5 @@ data class products(
     @SerializedName("skip")
     val skip: Int,
     @SerializedName("total")
-    val total: Int
+    val total: Int,
 )
