@@ -12,10 +12,13 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,14 +30,20 @@ import com.angel.shoppingapp.model.Product
 import com.angel.shoppingapp.model.getMenu
 import com.angel.shoppingapp.model.getProduct
 import com.angel.shoppingapp.navigation.Screen
+import com.angel.shoppingapp.screens.screens.list
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun ItemCard(item: String, navController: NavController) {
-    Card(modifier = Modifier.clip(shape = RoundedCornerShape(3, 3, 3, 3)).clickable
-    { navController.navigate(
-        Screen.Details.route)
-        Log.d("Item Card", "Column: $item")
-    }) {
+    Card(modifier = Modifier
+        .clip(shape = RoundedCornerShape(3, 3, 3, 3))
+        .clickable
+        {
+            navController.navigate(
+                Screen.Details.route)
+            Log.d("Item Card", "Column: $item")
+        }) {
         Column {
             AsyncImage(
                 modifier = Modifier.height(160.dp),
@@ -90,7 +99,7 @@ fun BasketCard(list: List<Product> = getProduct()) {
             Row(modifier = Modifier.padding(8.dp)) {
                 AsyncImage(model = item.thumbnail, contentDescription = "product image")
                 Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
-                    Text(text = "${item.title}")
+                    Text(text = item.title)
                     Text(text = "£${item.price}")
                 }
             }
@@ -149,51 +158,60 @@ fun MoreDetailsColumn(list: List<Product> = getProduct()) {
 }
 
 @Composable
-fun TopBar(title: String, navigationIcon:  @Composable() (() -> Unit)?) {
+fun TopBar(title: String, navController: NavController, navigationIcon: @Composable() (() -> Unit)?) {
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
     TopAppBar(
         title = {
             Text(text = title,
                 color = Color.White)
         },
-
         backgroundColor = Color(0xFFB11E1E),
         navigationIcon = navigationIcon
+
     )
 }
 
-@Preview
 @Composable
-fun sidebar(list: List<com.angel.shoppingapp.model.Menu> = getMenu()) {
-    Surface {
-        Surface(modifier = Modifier
-            .fillMaxHeight()
-            .width(200.dp)
-            .padding(start = 8.dp, end = 8.dp, top = 8.dp)) {
-        }
-        LazyColumn {
-            items(items = list, itemContent = { item ->
-                Row(modifier = Modifier
-                    .background(color = Color.LightGray)
-                    .width(370.dp)
-                    .height(60.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
+fun SideMenuDrawer(list: List<com.angel.shoppingapp.model.Menu> = getMenu(),
+                   state: DrawerState, navController: NavController){
 
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Spacer(modifier = Modifier.weight(0.6f))
+    ModalDrawer(
+        drawerState = state,
+        drawerContent = {
+            LazyColumn {
+                items(items = list, itemContent = { item ->
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Button(
+                            shape = RectangleShape,
+                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
+                            onClick = { when(item.title){
+                                "Home" -> {
+                                    navController.navigate(Screen.HomeScreen.route)
+                                }
+                                "Basket" -> {
+                                    navController.navigate(Screen.BasketScreen.route)
+                                }
+                                else ->
+                                    Log.d("Navigation", "SideMenuDrawer: Couldn't find a valid navigation route.")
+                            } }
+                        ) {
+
                             Icon(imageVector = item.icon,
                                 contentDescription = "Home Icon",
-                                modifier = Modifier.padding(top = 5.dp, bottom = 5.dp, end = 5.dp))
+                                modifier = Modifier.padding(end = 5.dp))
                             Text(text = item.title,
-                                style = TextStyle(fontSize = 25.sp),
                                 modifier = Modifier.weight(1f))
                         }
                     }
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-            })
-        }
-    }
+                })
+            }
+        },
+        content = {}
+    )
 }
 
 
