@@ -1,7 +1,6 @@
 package com.angel.shoppingapp.widgets
 
 import android.util.Log
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,112 +11,119 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.angel.shoppingapp.model.Product
-import com.angel.shoppingapp.model.getMenu
-import com.angel.shoppingapp.model.getProduct
+import com.angel.shoppingapp.R
+import com.angel.shoppingapp.model.productsItem
 import com.angel.shoppingapp.navigation.Screen
 import com.angel.shoppingapp.screens.screens.list
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.*
 
 @Composable
-fun ItemCard(item: String, navController: NavController) {
+fun ItemCard(item: productsItem, navController: NavController) {
+    Log.d("ItemCard", item.toString())
+
     Card(modifier = Modifier
         .clip(shape = RoundedCornerShape(3, 3, 3, 3))
         .clickable
         {
-            navController.navigate(
-                Screen.Details.route)
-            Log.d("Item Card", "Column: $item")
-        }) {
+            navController.navigate("detail_screen/" + item.id)
+            Log.d("onClick", "Column: ${item.id}")
+        }, elevation = 16.dp) {
         Column {
             AsyncImage(
-                modifier = Modifier.height(160.dp),
-                model = "https://www.foodbev.com/wp-content/gallery/food-releases-march-2019/Hazelnut-Spread-M-and-Ms.jpg",
-                contentDescription = ""
+                modifier = Modifier.height(190.dp),
+                model = item.images[0],
+                contentDescription = "",
+                error = painterResource(id = R.drawable.placeholder)
             )
 
-            Card(shape = RoundedCornerShape(0, 0, 10, 10), elevation = 12.dp) {
+            Card(shape = RoundedCornerShape(0, 0, 10, 10), elevation = 16.dp) {
                 Row(
                     modifier = Modifier
                         .height(70.dp)
-                        .width(255.dp)
+                        .width(253.dp)
                         .background(Color(0xFFBFBDBD)),
+                    verticalAlignment = Alignment.CenterVertically
                 )
 
                 {
                     Text(
-                        text = "Price £$item",
+                        text = item.title,
                         modifier = Modifier
                             .padding(start = 5.dp)
                             .background(Color(0xFFBFBDBD))
                             .weight(1F),
-                        style = MaterialTheme.typography.h5,
+                        style = MaterialTheme.typography.subtitle1,
                     )
 
-                    Card(
+                    Text(
+                        text = "Price: ${moneyFormat(item.price)}",
                         modifier = Modifier
-                            .fillMaxHeight()
+                            .padding(end = 8.dp)
+                            .background(Color(0xFFBFBDBD))
                             .weight(1F),
-                        border = BorderStroke(1.5.dp, Color.Black),
-                        shape = RoundedCornerShape(10),
-                        backgroundColor = Color(0xFFD9D9D9), elevation = 12.dp) {
+                        style = MaterialTheme.typography.subtitle1,
+                        textAlign = TextAlign.End
+                    )
 
-                        Text(
-                            text = "Average rating\n5 stars",
-                            style = MaterialTheme.typography.subtitle1,
-                            textAlign = TextAlign.Center
-                        )
-                    }
                 }
             }
+
         }
+
     }
 }
 
-@Composable
-fun BasketCard(list: List<Product> = getProduct()) {
-    var total = 0.00
+fun moneyFormat(num: Int): String {
+    val numberFormat = NumberFormat.getCurrencyInstance(Locale.UK)
+    numberFormat.maximumFractionDigits
+    val convert = numberFormat.format(num)
 
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-        items(items = list, itemContent = { item ->
-
-            Row(modifier = Modifier.padding(8.dp)) {
-                AsyncImage(model = item.thumbnail, contentDescription = "product image")
-                Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
-                    Text(text = item.title)
-                    Text(text = "£${item.price}")
-                }
-            }
-        })
-    }
-
-    Box(contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()) {
-        com.angel.shoppingapp.components.Button(onClick = { /*TODO*/ },
-            elevation = ButtonDefaults.elevation(2.dp),
-            value = "Total £$total")
-    }
+    return convert
 }
 
+
+//@Composable
+//fun BasketCard(item: productsItem) {
+//    var total = 0.00
+//
+//    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+//        items(items = list, itemContent = { item ->
+//
+//            Row(modifier = Modifier.padding(8.dp)) {
+//                AsyncImage(model = item., contentDescription = "product image")
+//                Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp)) {
+//                    Text(text = item.title)
+//                    Text(text = "£${item.price}")
+//                }
+//            }
+//        })
+//    }
+//
+//    Box(contentAlignment = Alignment.BottomCenter,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .fillMaxHeight()) {
+//        com.angel.shoppingapp.components.Button(onClick = { /*TODO*/ },
+//            elevation = ButtonDefaults.elevation(2.dp),
+//            value = "Total £$total")
+//    }
+//}
+
 @Composable
-fun MoreDetailsColumn(list: List<Product> = getProduct()) {
+fun MoreDetailsColumn() {
     Box(modifier = Modifier
         .padding(start = 8.dp)) {
         Column {
@@ -158,9 +164,11 @@ fun MoreDetailsColumn(list: List<Product> = getProduct()) {
 }
 
 @Composable
-fun TopBar(title: String, navController: NavController, navigationIcon: @Composable() (() -> Unit)?) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+fun TopBar(
+    drawerState: DrawerState,
+    scope: CoroutineScope,
+    title: String,
+) {
 
     TopAppBar(
         title = {
@@ -168,17 +176,38 @@ fun TopBar(title: String, navController: NavController, navigationIcon: @Composa
                 color = Color.White)
         },
         backgroundColor = Color(0xFFB11E1E),
-        navigationIcon = navigationIcon
+        navigationIcon = {
+            IconButton(onClick = {
+                if (drawerState.isClosed) {
+                    scope.launch {
 
-    )
+                        Log.d("TopBar", "TopBar: tapped")
+                        drawerState.open()
+                    }
+                } else if (drawerState.isOpen) {
+                    scope.launch {
+                        Log.d("TopBar", "TopBar: closed")
+                        drawerState.close()
+                    }
+                }
+
+            }) {
+                Icon(Icons.Default.Menu,
+                    contentDescription = "menu button",
+                    tint = Color.White)
+            }
+        })
 }
 
 @Composable
-fun SideMenuDrawer(list: List<com.angel.shoppingapp.model.Menu> = getMenu(),
-                   state: DrawerState, navController: NavController){
+fun SideMenuDrawer(
+    drawerState: DrawerState,
+    navController: NavController,
+    content: @Composable() (() -> Unit),
+) {
 
     ModalDrawer(
-        drawerState = state,
+        drawerState = drawerState,
         drawerContent = {
             LazyColumn {
                 items(items = list, itemContent = { item ->
@@ -188,16 +217,19 @@ fun SideMenuDrawer(list: List<com.angel.shoppingapp.model.Menu> = getMenu(),
                         Button(
                             shape = RectangleShape,
                             colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
-                            onClick = { when(item.title){
-                                "Home" -> {
-                                    navController.navigate(Screen.HomeScreen.route)
+                            onClick = {
+                                when (item.title) {
+                                    "Home" -> {
+                                        navController.navigate(Screen.HomeScreen.route)
+                                    }
+                                    "Basket" -> {
+                                        navController.navigate(Screen.BasketScreen.route)
+                                    }
+                                    else ->
+                                        Log.d("Navigation",
+                                            "SideMenuDrawer: Couldn't find a valid navigation route.")
                                 }
-                                "Basket" -> {
-                                    navController.navigate(Screen.BasketScreen.route)
-                                }
-                                else ->
-                                    Log.d("Navigation", "SideMenuDrawer: Couldn't find a valid navigation route.")
-                            } }
+                            }
                         ) {
 
                             Icon(imageVector = item.icon,
@@ -206,12 +238,15 @@ fun SideMenuDrawer(list: List<com.angel.shoppingapp.model.Menu> = getMenu(),
                             Text(text = item.title,
                                 modifier = Modifier.weight(1f))
                         }
+
                     }
+
                 })
+
             }
+
         },
-        content = {}
-    )
+        content = content)
 }
 
 
