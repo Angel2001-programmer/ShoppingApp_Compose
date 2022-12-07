@@ -14,6 +14,7 @@ class HomeModel : ViewModel() {
     var productListResponse: List<productsItem> by mutableStateOf(listOf())
     var categoryListResponse: List<Category> by mutableStateOf(listOf())
     var chosenListResponse: List<productsItem> by mutableStateOf(listOf())
+    var SingleItemResponse: List<productsItem> by mutableStateOf(listOf())
     var errorMessage: String by mutableStateOf("")
 
     fun getData() {
@@ -46,6 +47,18 @@ class HomeModel : ViewModel() {
             try {
                 val chosenList = api.getChosenItems(id)
                 chosenListResponse = chosenList
+            } catch (e: java.lang.Exception) {
+                errorMessage = e.message.toString()
+            }
+        }
+    }
+
+    fun getSingleItem(id: Int) {
+        viewModelScope.launch {
+            val api = RetrofitClient.getInstance()
+            try {
+                val productItem = api.getSingleItem(id)
+                productListResponse = listOf(productItem)
             } catch (e: java.lang.Exception) {
                 errorMessage = e.message.toString()
             }

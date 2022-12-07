@@ -18,6 +18,3 @@ interface Api {
     @GET("products/{id}")
     suspend fun getSingleItem(@Path("id") id: Int): productsItem
 }
-
-
-//@Path("id") id: Int
