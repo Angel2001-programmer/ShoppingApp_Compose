@@ -2,6 +2,7 @@ package com.angel.shoppingapp.retrofit
 
 import com.angel.shoppingapp.model.Category
 import com.angel.shoppingapp.model.productsItem
+import com.angel.shoppingapp.model.singleProduct
 import retrofit2.http.GET
 import retrofit2.http.Path
 

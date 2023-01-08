@@ -7,7 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.angel.shoppingapp.database.AppDatabase
+import com.angel.shoppingapp.database.User
 import com.angel.shoppingapp.navigation.Navigation
+import java.text.NumberFormat
+import java.util.*
 
 class MainActivity : ComponentActivity() {
 
@@ -35,5 +40,12 @@ class MainActivity : ComponentActivity() {
             Navigation(navController = navController)
         }
     }
+}
+
+fun moneyFormat(num: Int): String {
+    val numberFormat = NumberFormat.getCurrencyInstance(Locale.UK)
+    numberFormat.maximumFractionDigits
+    val convert = numberFormat.format(num)
+    return convert
 }
 

@@ -1,5 +1,3 @@
-package com.angel.shoppingapp.widgets
-
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -26,19 +24,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.angel.shoppingapp.R
 import com.angel.shoppingapp.model.Category
+import com.angel.shoppingapp.model.getMenu
 import com.angel.shoppingapp.model.productsItem
+import com.angel.shoppingapp.moneyFormat
 import com.angel.shoppingapp.navigation.Screen
-import com.angel.shoppingapp.screens.screens.list
-import com.angel.shoppingapp.viewmodels.DetailsModel
 import com.angel.shoppingapp.viewmodels.HomeModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
 import java.util.*
 
 @Composable
@@ -83,18 +79,16 @@ fun SideMenuDrawer(
     navController: NavController,
     content: @Composable() (() -> Unit),
 ) {
-
+    val list: List<com.angel.shoppingapp.model.Menu> = getMenu()
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = {
-            LazyColumn {
+            LazyColumn (modifier = Modifier.background(Color.LightGray)){
                 items(items = list, itemContent = { item ->
                     Row(modifier = Modifier
                         .fillMaxWidth()
                         .padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Button(
-                            shape = RectangleShape,
-                            colors = ButtonDefaults.buttonColors(backgroundColor = Color.LightGray),
+                        TextButton(
                             onClick = {
                                 when (item.title) {
                                     "Home" -> {
@@ -112,8 +106,10 @@ fun SideMenuDrawer(
 
                             Icon(imageVector = item.icon,
                                 contentDescription = "Home Icon",
+                                tint = Color.Black,
                                 modifier = Modifier.padding(end = 5.dp))
                             Text(text = item.title,
+                                color = Color.Black,
                                 modifier = Modifier.weight(1f))
                         }
 
@@ -129,15 +125,13 @@ fun SideMenuDrawer(
 
 @Composable
 fun ItemCard(item: productsItem, navController: NavController) {
-    var detailsModel = viewModel<DetailsModel>()
-
     Log.d("ItemCard", item.toString())
 
     Card(modifier = Modifier
         .clip(shape = RoundedCornerShape(3, 3, 3, 3))
         .clickable
         {
-            navController.navigate(Screen.Details.route)
+            navController.navigate(Screen.Details.route + "/${item.id}")
             Log.d("onClick", "Column: ${item.id}")
 
         }, elevation = 16.dp) {
@@ -186,106 +180,100 @@ fun ItemCard(item: productsItem, navController: NavController) {
     }
 }
 
-fun moneyFormat(num: Int): String {
-    val numberFormat = NumberFormat.getCurrencyInstance(Locale.UK)
-    numberFormat.maximumFractionDigits
-    val convert = numberFormat.format(num)
-
-    return convert
-}
-
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BasketCard(list: List<productsItem>) {
-    var total = remember {
-        mutableStateOf(0)
-    }
+    for(item in list) {
+        var total = remember {
+            mutableStateOf(moneyFormat(0 + item.price))
+        }
 
-    val itemList = remember {
-        mutableStateListOf<productsItem>()
-    }
+        val itemList = remember {
+            mutableStateListOf<productsItem>()
+        }
 
-    LazyColumn {
-        items(items = list, itemContent = { item ->
-            val dismissState = rememberDismissState()
+        LazyColumn {
+            items(items = list, itemContent = { item ->
 
-            if (dismissState.isDismissed(DismissDirection.EndToStart)) {
+                val dismissState = rememberDismissState()
+
+                if (dismissState.isDismissed(DismissDirection.EndToStart)) {
 //                list.remove(item)
-            }
+                }
 
-            SwipeToDismiss(
-                state = dismissState,
-                modifier = Modifier.padding(
-                    vertical = Dp(1f)),
-                directions = setOf(
-                    DismissDirection.EndToStart
-                ),
-                dismissThresholds = { direction ->
-                    FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.1f else 0.05f)
-                },
-                background = {
-                    val color by animateColorAsState(
-                        when (dismissState.targetValue) {
-                            DismissValue.Default -> Color.White
-                            else -> Color.Red
-                        }
-                    )
-                    val alignment = Alignment.CenterEnd
-                    val icon = Icons.Default.Delete
-
-                    val scale by animateFloatAsState(
-                        if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
-                    )
-
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(color)
-                            .padding(horizontal = Dp(20f)),
-                        contentAlignment = alignment
-                    ) {
-                        Icon(
-                            icon,
-                            contentDescription = "Delete Icon",
-                            modifier = Modifier.scale(scale)
+                SwipeToDismiss(
+                    state = dismissState,
+                    modifier = Modifier.padding(
+                        vertical = Dp(1f)),
+                    directions = setOf(
+                        DismissDirection.EndToStart
+                    ),
+                    dismissThresholds = { direction ->
+                        FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.1f else 0.05f)
+                    },
+                    background = {
+                        val color by animateColorAsState(
+                            when (dismissState.targetValue) {
+                                DismissValue.Default -> Color.White
+                                else -> Color.Red
+                            }
                         )
-                    }
-                },
-                dismissContent = {
-                    Card(
-                        elevation = animateDpAsState(
-                            if (dismissState.dismissDirection != null) 4.dp else 0.dp
-                        ).value,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(Dp(150f))
-                            .align(alignment = Alignment.CenterVertically)
-                    ) {
-                        Row(modifier = Modifier.padding(8.dp)) {
-                            AsyncImage(
-                                model = item.images[0],
-                                contentDescription = "product image"
+                        val alignment = Alignment.CenterEnd
+                        val icon = Icons.Default.Delete
+
+                        val scale by animateFloatAsState(
+                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                        )
+
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(color)
+                                .padding(horizontal = Dp(20f)),
+                            contentAlignment = alignment
+                        ) {
+                            Icon(
+                                icon,
+                                contentDescription = "Delete Icon",
+                                modifier = Modifier.scale(scale)
                             )
-                            Column(
-                                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                                verticalArrangement = Arrangement.SpaceBetween) {
-                                Text(text = item.title)
-                                Text(text = "£${item.price}")
+                        }
+                    },
+                    dismissContent = {
+                        Card(
+                            elevation = animateDpAsState(
+                                if (dismissState.dismissDirection != null) 4.dp else 0.dp
+                            ).value,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(Dp(150f))
+                                .align(alignment = Alignment.CenterVertically)
+                        ) {
+                            Row(modifier = Modifier.padding(8.dp)) {
+                                AsyncImage(
+                                    model = item.images[0],
+                                    contentDescription = "product image"
+                                )
+                                Column(
+                                    modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                                    verticalArrangement = Arrangement.SpaceBetween) {
+                                    Text(text = item.title)
+                                    Text(text = "${moneyFormat(item.price)}")
+                                }
                             }
                         }
-                    }
-                })
-            Divider(modifier = Modifier.height(1.dp))
-        })
+                    })
+                Divider(modifier = Modifier.height(1.dp))
+            })
 
+        }
+        AlertDialog(
+            title = "Purchase Successful",
+            msg = "Thank you for choosing us to place your order with",
+            confirmMSG = "Exit",
+            total = total.value
+        )
     }
-    AlertDialog(
-        title = "Purchase Successful",
-        msg = "Thank you for choosing us to place your order with",
-        confirmMSG = "Exit",
-        total = total.value
-    )
 }
 
 @Composable
@@ -293,7 +281,7 @@ fun AlertDialog(
     title: String,
     msg: String,
     confirmMSG: String,
-    total: Int,
+    total: String,
 ) {
 
     Column {
@@ -326,7 +314,7 @@ fun AlertDialog(
             com.angel.shoppingapp.components.Button(onClick = { openDialog.value = true },
 
                 elevation = ButtonDefaults.elevation(2.dp),
-                value = "Total ${moneyFormat(total)}")
+                value = "Total ${total}")
         }
     }
 }
@@ -347,7 +335,6 @@ fun MoreDetailsColumn(list: List<productsItem>) {
                         elevation = 8.dp) {
 
                         AsyncImage(
-                            modifier = Modifier.height(190.dp),
                             model = item.images[0],
                             contentDescription = "Product image",
                             error = painterResource(id = R.drawable.placeholder),
@@ -371,7 +358,7 @@ fun MoreDetailsColumn(list: List<productsItem>) {
                     style = MaterialTheme.typography.h6
                 )
                 com.angel.shoppingapp.components.Text(
-                    value = item.price.toString(),
+                    value = moneyFormat(item.price),
                     textAlign = TextAlign.Left,
                     style = MaterialTheme.typography.subtitle1
                 )
@@ -391,6 +378,8 @@ fun MoreDetailsColumn(list: List<productsItem>) {
     }
 }
 
+
+
 @Composable
 fun MutableColumn(navController: NavController, list: List<productsItem>) {
     LazyColumn(
@@ -401,16 +390,6 @@ fun MutableColumn(navController: NavController, list: List<productsItem>) {
             ItemCard(item = item, navController = navController)
         }
     }
-
-//    Box(contentAlignment = Alignment.BottomCenter,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .fillMaxHeight()) {
-//    com.angel.shoppingapp.components.Button(onClick = { /*TODO*/ },
-//        elevation = ButtonDefaults.elevation(2.dp),
-//        value = "Total ${moneyFormat(total)}")
-
-
 }
 
 
@@ -485,8 +464,3 @@ fun DropDown(data: List<Category>, homeModel: HomeModel, isExpanded: MutableStat
         }
     }
 }
-
-
-
-
-

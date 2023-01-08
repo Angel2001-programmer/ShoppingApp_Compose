@@ -1,11 +1,13 @@
 package com.angel.shoppingapp.screens.screens
 
+import DropDown
+import MutableColumn
+import SideMenuDrawer
+import TopBar
 import android.util.Log
+import android.view.Surface
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.DrawerValue
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.rememberDrawerState
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,12 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.angel.shoppingapp.model.getMenu
 import com.angel.shoppingapp.viewmodels.HomeModel
-import com.angel.shoppingapp.widgets.DropDown
-import com.angel.shoppingapp.widgets.MutableColumn
-import com.angel.shoppingapp.widgets.SideMenuDrawer
-import com.angel.shoppingapp.widgets.TopBar
 
-val list: List<com.angel.shoppingapp.model.Menu> = getMenu()
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -37,26 +34,24 @@ fun HomeScreen(navController: NavController) {
     Log.d("HomeScreen", "HomeScreen: ${homeModel.productListResponse}")
 
     Scaffold(
-        topBar = { TopBar(drawerState, scope, "Home") }
-    ) {
-        Surface(modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(), color = Color(0xFFD5B79C)) {
+        topBar = { TopBar(drawerState = drawerState, scope = scope, title = "Home") },
+        content = { it
+            Surface(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(), color = Color(0xFFD5B79C)) {
 
-            SideMenuDrawer(
-                drawerState,
-                navController
-            ) {
-                Column(verticalArrangement = Arrangement.Center) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    DropDown(homeModel.categoryListResponse, homeModel, isExpanded)
+                SideMenuDrawer(drawerState = drawerState, navController = navController) {
+                    Column(verticalArrangement = Arrangement.Center) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        DropDown(homeModel.categoryListResponse, homeModel, isExpanded)
 
-                    if (!isExpanded.value) {
-                        MutableColumn(navController = navController, homeModel.chosenListResponse)
+                        if (!isExpanded.value) {
+                            MutableColumn(navController = navController,
+                                homeModel.productListResponse)
+                        }
+                        MutableColumn(navController = navController, homeModel.productListResponse)
                     }
-                    MutableColumn(navController = navController, homeModel.productListResponse)
                 }
             }
-        }
-    }
+        })
 }

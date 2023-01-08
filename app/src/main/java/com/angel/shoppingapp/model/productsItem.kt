@@ -7,13 +7,13 @@ data class productsItem(
     @SerializedName("category")
     val category: Category,
     @SerializedName("description")
-    val description: String,
+    val description: String = "",
     @SerializedName("id")
-    val id: Int,
+    val id: Int = 0,
     @SerializedName("images")
-    val images: List<String>,
+    val images: List<String> = emptyList(),
     @SerializedName("price")
-    val price: Int,
+    val price: Int = 0,
     @SerializedName("title")
-    val title: String,
+    val title: String = "",
 )
