@@ -7,15 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
-import com.angel.shoppingapp.database.AppDatabase
-import com.angel.shoppingapp.database.User
 import com.angel.shoppingapp.navigation.Navigation
+import com.angel.shoppingapp.viewmodels.HomeModel
 import java.text.NumberFormat
 import java.util.*
 
 class MainActivity : ComponentActivity() {
-
     lateinit var navController: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {

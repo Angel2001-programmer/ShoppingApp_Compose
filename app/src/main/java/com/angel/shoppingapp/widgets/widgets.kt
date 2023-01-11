@@ -1,12 +1,15 @@
+import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
-import androidx.compose.animation.animateColorAsState
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,9 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -27,11 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.angel.shoppingapp.R
-import com.angel.shoppingapp.model.Category
+import com.angel.shoppingapp.database.Basket
+import com.angel.shoppingapp.model.CategoryItem
 import com.angel.shoppingapp.model.getMenu
 import com.angel.shoppingapp.model.productsItem
 import com.angel.shoppingapp.moneyFormat
 import com.angel.shoppingapp.navigation.Screen
+import com.angel.shoppingapp.viewmodels.BasketModel
 import com.angel.shoppingapp.viewmodels.HomeModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -46,8 +49,10 @@ fun TopBar(
 
     TopAppBar(
         title = {
-            Text(text = title,
-                color = Color.White)
+            Text(
+                text = title,
+                color = Color.White
+            )
         },
         backgroundColor = Color(0xFFB11E1E),
         navigationIcon = {
@@ -66,9 +71,11 @@ fun TopBar(
                 }
 
             }) {
-                Icon(Icons.Default.Menu,
+                Icon(
+                    Icons.Default.Menu,
                     contentDescription = "menu button",
-                    tint = Color.White)
+                    tint = Color.White
+                )
             }
         })
 }
@@ -83,11 +90,13 @@ fun SideMenuDrawer(
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = {
-            LazyColumn (modifier = Modifier.background(Color.LightGray)){
+            LazyColumn(modifier = Modifier.background(Color.LightGray)) {
                 items(items = list, itemContent = { item ->
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp), verticalAlignment = Alignment.CenterVertically
+                    ) {
                         TextButton(
                             onClick = {
                                 when (item.title) {
@@ -98,19 +107,25 @@ fun SideMenuDrawer(
                                         navController.navigate(Screen.BasketScreen.route)
                                     }
                                     else ->
-                                        Log.d("Navigation",
-                                            "SideMenuDrawer: Couldn't find a valid navigation route.")
+                                        Log.d(
+                                            "Navigation",
+                                            "SideMenuDrawer: Couldn't find a valid navigation route."
+                                        )
                                 }
                             }
                         ) {
 
-                            Icon(imageVector = item.icon,
+                            Icon(
+                                imageVector = item.icon,
                                 contentDescription = "Home Icon",
                                 tint = Color.Black,
-                                modifier = Modifier.padding(end = 5.dp))
-                            Text(text = item.title,
+                                modifier = Modifier.padding(end = 5.dp)
+                            )
+                            Text(
+                                text = item.title,
                                 color = Color.Black,
-                                modifier = Modifier.weight(1f))
+                                modifier = Modifier.weight(1f)
+                            )
                         }
 
                     }
@@ -120,21 +135,23 @@ fun SideMenuDrawer(
             }
 
         },
-        content = content)
+        content = content
+    )
 }
 
 @Composable
 fun ItemCard(item: productsItem, navController: NavController) {
     Log.d("ItemCard", item.toString())
+    Card(
+        modifier = Modifier
+            .clip(shape = RoundedCornerShape(3, 3, 3, 3))
+            .clickable
+            {
+                navController.navigate(Screen.Details.route + "/${item.id}")
+                Log.d("onClick", "Column: ${item.id}")
 
-    Card(modifier = Modifier
-        .clip(shape = RoundedCornerShape(3, 3, 3, 3))
-        .clickable
-        {
-            navController.navigate(Screen.Details.route + "/${item.id}")
-            Log.d("onClick", "Column: ${item.id}")
-
-        }, elevation = 16.dp) {
+            }, elevation = 16.dp
+    ) {
         Column {
             AsyncImage(
                 modifier = Modifier.height(190.dp),
@@ -180,109 +197,143 @@ fun ItemCard(item: productsItem, navController: NavController) {
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BasketCard(list: List<productsItem>) {
-    for(item in list) {
-        var total = remember {
-            mutableStateOf(moneyFormat(0 + item.price))
-        }
+fun BasketCard(context: Context, list: List<Basket>) {
+    val basketModel = BasketModel()
+    val newList = mutableStateListOf<Basket>()
 
-        val itemList = remember {
-            mutableStateListOf<productsItem>()
-        }
+    newList.addAll(list)
 
-        LazyColumn {
-            items(items = list, itemContent = { item ->
+    if(newList.isEmpty()){
+        ErrorResponse()
+    }
 
-                val dismissState = rememberDismissState()
-
-                if (dismissState.isDismissed(DismissDirection.EndToStart)) {
-//                list.remove(item)
+    LazyColumn {
+        itemsIndexed(items = newList, key = { _, listItem ->
+            listItem.hashCode()
+        }) { _, item ->
+            val dismissState = rememberDismissState(
+                confirmStateChange = {
+                    if (it == DismissValue.DismissedToStart) {
+                        newList.remove(item)
+                        basketModel.removeProduct(context, item)
+                        Toast.makeText(context, "Item removed from basket.", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                    true
                 }
-
-                SwipeToDismiss(
-                    state = dismissState,
-                    modifier = Modifier.padding(
-                        vertical = Dp(1f)),
-                    directions = setOf(
-                        DismissDirection.EndToStart
-                    ),
-                    dismissThresholds = { direction ->
-                        FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.1f else 0.05f)
-                    },
-                    background = {
-                        val color by animateColorAsState(
-                            when (dismissState.targetValue) {
-                                DismissValue.Default -> Color.White
-                                else -> Color.Red
-                            }
+            )
+            SwipeToDismiss(
+                state = dismissState,
+                background = {
+                    val color = when (dismissState.dismissDirection) {
+                        DismissDirection.StartToEnd -> Color.Transparent
+                        DismissDirection.EndToStart -> Color.Red
+                        null
+                        -> Color.Blue
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(color)
+                            .padding(horizontal = (10.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete Icon",
                         )
-                        val alignment = Alignment.CenterEnd
-                        val icon = Icons.Default.Delete
-
-                        val scale by animateFloatAsState(
-                            if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
-                        )
-
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .background(color)
-                                .padding(horizontal = Dp(20f)),
-                            contentAlignment = alignment
-                        ) {
-                            Icon(
-                                icon,
-                                contentDescription = "Delete Icon",
-                                modifier = Modifier.scale(scale)
-                            )
-                        }
-                    },
-                    dismissContent = {
-                        Card(
-                            elevation = animateDpAsState(
-                                if (dismissState.dismissDirection != null) 4.dp else 0.dp
-                            ).value,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(Dp(150f))
-                                .align(alignment = Alignment.CenterVertically)
-                        ) {
-                            Row(modifier = Modifier.padding(8.dp)) {
-                                AsyncImage(
-                                    model = item.images[0],
-                                    contentDescription = "product image"
-                                )
-                                Column(
-                                    modifier = Modifier.padding(start = 8.dp, end = 8.dp),
-                                    verticalArrangement = Arrangement.SpaceBetween) {
-                                    Text(text = item.title)
-                                    Text(text = "${moneyFormat(item.price)}")
-                                }
-                            }
-                        }
-                    })
-                Divider(modifier = Modifier.height(1.dp))
-            })
-
+                    }
+                },
+                dismissContent = {
+                    BasketItem(dismissState, item)
+                },
+                directions = setOf(DismissDirection.EndToStart)
+            )
+            Divider()
         }
-        AlertDialog(
-            title = "Purchase Successful",
-            msg = "Thank you for choosing us to place your order with",
-            confirmMSG = "Exit",
-            total = total.value
-        )
+    }
+
+    AlertDialog(
+        title = "Purchase Successful",
+        msg = "Thank you for choosing us to place your order with",
+        confirmMSG = "Exit",
+        newList = newList,
+        homeModel = basketModel,
+        context = context
+    )
+}
+
+@Composable
+fun ErrorResponse() {
+        Box(contentAlignment = Alignment.Center) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painterResource(id = R.drawable.error),
+                    contentDescription = "Error has happened.",
+                    modifier = Modifier
+                        .height(250.dp)
+                        .width(250.dp),
+                )
+                Text(
+                    text = "Error has happened\nplease report on google play.",
+                    style = MaterialTheme.typography.h5, textAlign = TextAlign.Center
+                )
+            }
     }
 }
+
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BasketItem(dismissState: DismissState, item: Basket) {
+    Card(
+        elevation = animateDpAsState(
+            if (dismissState.dismissDirection != null) 4.dp else 0.dp
+        ).value,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Dp(150f))
+    ) {
+        Row(modifier = Modifier.padding(8.dp)) {
+            AsyncImage(
+                model = item.image,
+                contentDescription = "product image",
+                error = painterResource(id = R.drawable.placeholder)
+            )
+            Column(
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(item.title!!)
+                Text(text = moneyFormat(item.price!!))
+            }
+        }
+    }
+}
+
 
 @Composable
 fun AlertDialog(
     title: String,
     msg: String,
     confirmMSG: String,
-    total: String,
+    newList: MutableList<Basket>,
+    homeModel: BasketModel,
+    context: Context
+
 ) {
+    var total = 0
+
+    for (item in newList) {
+        total = total + item.price!!
+    }
+
 
     Column {
         val openDialog = remember { mutableStateOf(false) }
@@ -298,23 +349,39 @@ fun AlertDialog(
                     Text(text = msg)
                 },
                 confirmButton = {
-                    Button(onClick = {
-                        openDialog.value = false
-                    }) {
+                    TextButton(onClick = { openDialog.value = false }) {
                         Text(text = confirmMSG)
                     }
                 }
             )
         }
 
-        Box(contentAlignment = Alignment.BottomCenter,
+        Box(
+            contentAlignment = Alignment.BottomCenter,
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()) {
-            com.angel.shoppingapp.components.Button(onClick = { openDialog.value = true },
-
-                elevation = ButtonDefaults.elevation(2.dp),
-                value = "Total ${total}")
+                .fillMaxHeight()
+        ) {
+            Column() {
+                TextButton(modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFEB5454)),
+                    onClick = {
+                        homeModel.clearAll(context)
+                        newList.removeAll(newList)
+                    }) {
+                    Text(text = "Clear Basket", color = Color.Black)
+                }
+                TextButton(modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.LightGray),
+                    onClick = { openDialog.value = true },
+                    content = {
+                        Text("Total: ${moneyFormat(total)}", color = Color.Black)
+                    }
+                )
+            }
         }
     }
 }
@@ -322,17 +389,26 @@ fun AlertDialog(
 
 @Composable
 fun MoreDetailsColumn(list: List<productsItem>) {
-    Box(modifier = Modifier
-        .padding(start = 8.dp)
-        .fillMaxWidth()) {
+    if(list.isEmpty()){
+        ErrorResponse()
+    }
+
+    Box(
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .fillMaxWidth()
+    ) {
         LazyColumn {
             items(list) { item ->
-                Row(modifier = Modifier.fillMaxWidth(),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Card(modifier = Modifier
-                        .clip(shape = RoundedCornerShape(3, 3, 3, 3)),
-                        elevation = 8.dp) {
+                    Card(
+                        modifier = Modifier
+                            .clip(shape = RoundedCornerShape(3, 3, 3, 3)),
+                        elevation = 8.dp
+                    ) {
 
                         AsyncImage(
                             model = item.images[0],
@@ -378,13 +454,12 @@ fun MoreDetailsColumn(list: List<productsItem>) {
     }
 }
 
-
-
 @Composable
 fun MutableColumn(navController: NavController, list: List<productsItem>) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally) {
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         items(list) { item ->
             Spacer(modifier = Modifier.height(14.dp))
             ItemCard(item = item, navController = navController)
@@ -392,16 +467,17 @@ fun MutableColumn(navController: NavController, list: List<productsItem>) {
     }
 }
 
-
 @Composable
-fun DropDown(data: List<Category>, homeModel: HomeModel, isExpanded: MutableState<Boolean>) {
+fun DropDown(data: List<CategoryItem>, homeModel: HomeModel, isExpanded: MutableState<Boolean>) {
     var title by remember { mutableStateOf("All") }
 
-    Card(modifier = Modifier
-        .padding(
-            start = 8.dp,
-            end = 8.dp)
-        .fillMaxWidth(),
+    Card(
+        modifier = Modifier
+            .padding(
+                start = 8.dp,
+                end = 8.dp
+            )
+            .fillMaxWidth(),
         shape = RoundedCornerShape(6.dp)
     ) {
         TextButton(onClick = { isExpanded.value = !isExpanded.value }) {
@@ -409,8 +485,10 @@ fun DropDown(data: List<Category>, homeModel: HomeModel, isExpanded: MutableStat
                 Column {
                     Row {
                         Text(title, textAlign = TextAlign.Start)
-                        Icon(imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "DropMenu")
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "DropMenu"
+                        )
                     }
                     if (isExpanded.value) {
                         //visible
@@ -419,38 +497,9 @@ fun DropDown(data: List<Category>, homeModel: HomeModel, isExpanded: MutableStat
                             LazyColumn(content = {
                                 items(items = data) { item ->
                                     TextButton(onClick = {
-                                        when (item.name) {
-                                            "Clothes" -> {
-                                                title = "Clothes"
-                                                isExpanded.value = false
-                                                homeModel.getChosenItems(1)
-                                            }
-                                            "Electronics" -> {
-                                                title = "Electronics"
-                                                isExpanded.value = false
-                                                homeModel.getChosenItems(2)
-                                            }
-                                            "Furniture" -> {
-                                                title = "Furniture"
-                                                isExpanded.value = false
-                                                homeModel.getChosenItems(3)
-                                            }
-                                            "Shoes" -> {
-                                                title = "Shoes"
-                                                isExpanded.value = false
-                                                homeModel.getChosenItems(4)
-                                            }
-                                            "Others" -> {
-                                                title = "Others"
-                                                isExpanded.value = false
-                                                homeModel.getChosenItems(5)
-                                            }
-                                            "Manualidades" -> {
-                                                title = "Manualidades"
-                                                isExpanded.value = false
-                                                homeModel.getChosenItems(6)
-                                            }
-                                        }
+                                        title = item.name
+                                        isExpanded.value = false
+                                        homeModel.getChosenItems(item.id)
                                     }) {
                                         Text(text = item.name, color = Color.Black)
                                     }

@@ -1,11 +1,17 @@
 package com.angel.shoppingapp.database
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = arrayOf(Basket::class), version = 1)
+@Database(
+    entities = arrayOf(Basket::class),
+    exportSchema = true,
+    version = 1,
+)
+
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): BasketDao
 
@@ -21,8 +27,8 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "product_database"
-                ).build()
+                    "basket_database")
+                    .build()
                 INSTANCE = instance
                 return instance
             }

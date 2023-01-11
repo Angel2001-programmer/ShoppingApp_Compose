@@ -1,6 +1,6 @@
 package com.angel.shoppingapp.retrofit
 
-import com.angel.shoppingapp.model.Category
+import com.angel.shoppingapp.model.CategoryItem
 import com.angel.shoppingapp.model.productsItem
 import com.angel.shoppingapp.model.singleProduct
 import retrofit2.http.GET
@@ -11,7 +11,7 @@ interface Api {
     suspend fun getProducts(): List<productsItem>
 
     @GET("categories")
-    suspend fun getCategories(): List<Category>
+    suspend fun getCategories(): List<CategoryItem>
 
     @GET("categories/{id}/products")
     suspend fun getChosenItems(@Path("id") id: Int): List<productsItem>
